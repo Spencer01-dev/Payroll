@@ -9,10 +9,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess, onShowTo
   const [isLoginView, setIsLoginView] = useState(true);
   
   // Form State
-  const [email, setEmail] = useState('admin@smartpay.io');
-  const [password, setPassword] = useState('admin123');
-  const [orgName, setOrgName] = useState('SafariTech Solutions Kenya Ltd');
-  const [fullName, setFullName] = useState('Faith Wanjiku');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [orgName, setOrgName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {

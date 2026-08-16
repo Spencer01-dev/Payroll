@@ -15,118 +15,8 @@ import { PayslipViewerModal } from './components/PayslipViewerModal';
 import { AuthScreen } from './components/AuthScreen';
 import { Employee, PayrollRun, PayrollItem, AuditLog } from './types';
 
-const INITIAL_EMPLOYEES: Employee[] = [
-  {
-    id: 'emp-1',
-    employee_code: 'EMP-001',
-    first_name: 'David',
-    last_name: 'Ochieng',
-    email: 'david.ochieng@safaritech.co.ke',
-    phone: '+254 722 100200',
-    department_id: 'dept_eng',
-    department_name: 'Engineering',
-    job_title: 'Lead Software Engineer',
-    hire_date: '2023-01-15',
-    basic_salary: 185000,
-    housing_allowance: 25000,
-    transport_allowance: 10000,
-    pay_frequency: 'Monthly',
-    payment_method: 'Bank Transfer',
-    bank_name: 'KCB Bank Kenya',
-    bank_account_number: '1289004455',
-    kra_pin: 'A019827364Z',
-    nssf_number: 'NSSF-987123',
-    shif_number: 'SHIF-443322',
-    status: 'Active'
-  },
-  {
-    id: 'emp-2',
-    employee_code: 'EMP-002',
-    first_name: 'Amina',
-    last_name: 'Hassan',
-    email: 'amina.hassan@safaritech.co.ke',
-    phone: '+254 733 400500',
-    department_id: 'dept_fin',
-    department_name: 'Finance & Ops',
-    job_title: 'Senior Financial Analyst',
-    hire_date: '2023-06-01',
-    basic_salary: 120000,
-    housing_allowance: 15000,
-    pay_frequency: 'Monthly',
-    payment_method: 'Bank Transfer',
-    bank_name: 'Equity Bank Kenya',
-    bank_account_number: '01102993881',
-    kra_pin: 'A014556677Y',
-    nssf_number: 'NSSF-654321',
-    shif_number: 'SHIF-887766',
-    status: 'Active'
-  },
-  {
-    id: 'emp-3',
-    employee_code: 'EMP-003',
-    first_name: 'Samuel',
-    last_name: 'Mwangi',
-    email: 'samuel.mwangi@safaritech.co.ke',
-    phone: '+254 711 889900',
-    department_id: 'dept_hr',
-    department_name: 'Human Resources',
-    job_title: 'HR & Talent Specialist',
-    hire_date: '2024-02-10',
-    basic_salary: 75000,
-    housing_allowance: 10000,
-    pay_frequency: 'Monthly',
-    payment_method: 'Bank Transfer',
-    bank_name: 'Co-operative Bank',
-    bank_account_number: '01129883774',
-    kra_pin: 'A011223344X',
-    nssf_number: 'NSSF-112233',
-    shif_number: 'SHIF-998877',
-    status: 'Active'
-  },
-  {
-    id: 'emp-4',
-    employee_code: 'EMP-004',
-    first_name: 'Grace',
-    last_name: 'Kiprono',
-    email: 'grace.kiprono@safaritech.co.ke',
-    phone: '+254 701 554433',
-    department_id: 'dept_eng',
-    department_name: 'Engineering',
-    job_title: 'UI/UX Product Designer',
-    hire_date: '2024-05-15',
-    basic_salary: 95000,
-    transport_allowance: 8000,
-    pay_frequency: 'Monthly',
-    payment_method: 'Bank Transfer',
-    bank_name: 'Standard Chartered',
-    bank_account_number: '01080998877',
-    kra_pin: 'A017788990W',
-    nssf_number: 'NSSF-445566',
-    shif_number: 'SHIF-332211',
-    status: 'Active'
-  },
-  {
-    id: 'emp-5',
-    employee_code: 'EMP-005',
-    first_name: 'Kevin',
-    last_name: 'Mutua',
-    email: 'kevin.mutua@safaritech.co.ke',
-    phone: '+254 799 112233',
-    department_id: 'dept_fin',
-    department_name: 'Finance & Ops',
-    job_title: 'Operations Assistant',
-    hire_date: '2024-09-01',
-    basic_salary: 45000,
-    pay_frequency: 'Monthly',
-    payment_method: 'Bank Transfer',
-    bank_name: 'NCBA Bank',
-    bank_account_number: '6655443322',
-    kra_pin: 'A015544332V',
-    nssf_number: 'NSSF-778899',
-    shif_number: 'SHIF-554433',
-    status: 'Active'
-  }
-];
+const INITIAL_EMPLOYEES: Employee[] = [];
+
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -149,10 +39,32 @@ export const App: React.FC = () => {
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [selectedPayslipItem, setSelectedPayslipItem] = useState<PayrollItem | null>(null);
 
-  // App State
-  const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
-  const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  // App State with LocalStorage persistence for standalone usage
+  const [employees, setEmployees] = useState<Employee[]>(() => {
+    const saved = localStorage.getItem('smartpay_employees');
+    return saved ? JSON.parse(saved) : INITIAL_EMPLOYEES;
+  });
+  const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>(() => {
+    const saved = localStorage.getItem('smartpay_payroll_runs');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
+    const saved = localStorage.getItem('smartpay_audit_logs');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Persist state changes
+  useEffect(() => {
+    localStorage.setItem('smartpay_employees', JSON.stringify(employees));
+  }, [employees]);
+
+  useEffect(() => {
+    localStorage.setItem('smartpay_payroll_runs', JSON.stringify(payrollRuns));
+  }, [payrollRuns]);
+
+  useEffect(() => {
+    localStorage.setItem('smartpay_audit_logs', JSON.stringify(auditLogs));
+  }, [auditLogs]);
 
   // Show a toast notification
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -174,6 +86,10 @@ export const App: React.FC = () => {
   // Calculation Function executing Kenya Statutory Logic
   const executeKenyaPayrollRun = useCallback((periodName: string, empList?: Employee[]) => {
     const activeEmps = (empList || employees).filter(e => e.status === 'Active');
+    if (activeEmps.length === 0) {
+      setPayrollRuns([]);
+      return;
+    }
 
     let totGross = 0;
     let totPAYE = 0;
