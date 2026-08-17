@@ -7,12 +7,14 @@ interface PayslipViewerModalProps {
   onClose: () => void;
   item: PayrollItem | null;
   periodName: string;
+  currentUser?: any;
 }
 
 export const PayslipViewerModal: React.FC<PayslipViewerModalProps> = ({
   isOpen,
   onClose,
   item,
+  currentUser,
   periodName
 }) => {
   if (!isOpen || !item) return null;
@@ -51,9 +53,9 @@ export const PayslipViewerModal: React.FC<PayslipViewerModalProps> = ({
           {/* Company & Period Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start border-b border-slate-200 dark:border-slate-800 pb-5 gap-4">
             <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">SafariTech Solutions Kenya Ltd</h1>
-              <p className="text-xs text-slate-500">Reg No: CPR/2023/889012 | KRA PIN: P051982736Z</p>
-              <p className="text-xs text-slate-500">P.O. Box 45901-00100, Nairobi, Kenya</p>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white">{currentUser?.organization_name || 'Organization'}</h1>
+              <p className="text-xs text-slate-500">Payroll Administrator: {currentUser?.user_name || 'Admin'}</p>
+              <p className="text-xs text-slate-500">Kenya Statutory Payslip</p>
             </div>
             <div className="text-left sm:text-right bg-teal-50 dark:bg-teal-950/40 p-3 rounded-2xl border border-teal-200 dark:border-teal-800">
               <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 block">Payslip Period</span>

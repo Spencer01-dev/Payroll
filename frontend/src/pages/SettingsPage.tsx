@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { Settings, Sliders, ShieldCheck, Globe, Save, Building } from 'lucide-react';
 
-export const SettingsPage: React.FC = () => {
+interface SettingsPageProps {
+  currentUser?: any;
+}
+
+export const SettingsPage: React.FC<SettingsPageProps> = ({ currentUser }) => {
   const [personalRelief, setPersonalRelief] = useState<number>(2400);
   const [nssfTier1, setNssfTier1] = useState<number>(8000);
   const [nssfTier2, setNssfTier2] = useState<number>(72000);
@@ -139,11 +143,11 @@ export const SettingsPage: React.FC = () => {
           <div className="space-y-3 text-xs">
             <div>
               <span className="text-slate-400 block text-[10px] uppercase font-semibold">Legal Company Name</span>
-              <span className="font-bold text-slate-900 dark:text-white">SafariTech Solutions Kenya Ltd</span>
+              <span className="font-bold text-slate-900 dark:text-white">{currentUser?.organization_name || 'Not Set'}</span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-semibold">Registration Number</span>
-              <span className="font-mono text-slate-700 dark:text-slate-300">CPR/2023/889012</span>
+              <span className="text-slate-400 block text-[10px] uppercase font-semibold">Account Owner</span>
+              <span className="font-mono text-slate-700 dark:text-slate-300">{currentUser?.user_name || 'Admin'}</span>
             </div>
             <div>
               <span className="text-slate-400 block text-[10px] uppercase font-semibold">Primary Currency</span>

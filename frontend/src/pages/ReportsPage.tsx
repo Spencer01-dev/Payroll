@@ -101,17 +101,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ payrollRuns }) => {
               </div>
             </div>
             <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-1 rounded-full">
-              KES {currentRun?.total_paye_tax.toLocaleString('en-KE') || '89,200'}
+              KES {currentRun ? currentRun.total_paye_tax.toLocaleString('en-KE') : '0'}
             </span>
           </div>
 
           <p className="text-xs text-slate-500">
-            Form P10 detailing total tax withheld across 5 employees after applying KES 2,400 monthly personal relief.
+            Form P10 detailing total PAYE tax withheld {currentRun ? `across ${currentRun.total_employees} staff members` : 'for the active payroll period'}.
           </p>
 
           <button
             onClick={downloadP10}
-            className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 border border-slate-200 dark:border-slate-700"
+            className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 border border-slate-200 dark:border-slate-700 cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 text-indigo-500" />
             <span>Download KRA iTax CSV Template</span>
@@ -131,7 +131,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ payrollRuns }) => {
               </div>
             </div>
             <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-3 py-1 rounded-full">
-              KES {currentRun ? (currentRun.total_nssf * 2).toLocaleString('en-KE') : '32,400'}
+              KES {currentRun ? (currentRun.total_nssf * 2).toLocaleString('en-KE') : '0'}
             </span>
           </div>
 
@@ -141,7 +141,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ payrollRuns }) => {
 
           <button
             onClick={downloadNSSF}
-            className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 border border-slate-200 dark:border-slate-700"
+            className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 border border-slate-200 dark:border-slate-700 cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 text-amber-500" />
             <span>Download NSSF Portal Schedule</span>
@@ -161,17 +161,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ payrollRuns }) => {
               </div>
             </div>
             <span className="text-xs font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/40 px-3 py-1 rounded-full">
-              KES {currentRun?.total_shif.toLocaleString('en-KE') || '14,300'}
+              KES {currentRun ? currentRun.total_shif.toLocaleString('en-KE') : '0'}
             </span>
           </div>
 
           <p className="text-xs text-slate-500">
-            2.75% Social Health Insurance Fund schedule replacing NHIF for all active Kenya staff.
+            2.75% Social Health Insurance Fund schedule replacing NHIF for active Kenya workforce.
           </p>
 
           <button
             onClick={downloadSHIF}
-            className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 border border-slate-200 dark:border-slate-700"
+            className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 border border-slate-200 dark:border-slate-700 cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 text-teal-500" />
             <span>Download SHIF Portal File</span>
@@ -191,7 +191,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ payrollRuns }) => {
               </div>
             </div>
             <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full">
-              KES {currentRun ? (currentRun.total_housing_levy * 2).toLocaleString('en-KE') : '15,600'}
+              KES {currentRun ? (currentRun.total_housing_levy * 2).toLocaleString('en-KE') : '0'}
             </span>
           </div>
 
@@ -201,7 +201,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ payrollRuns }) => {
 
           <button
             onClick={downloadHousingLevy}
-            className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 border border-slate-200 dark:border-slate-700"
+            className="w-full py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 font-semibold rounded-xl text-xs flex items-center justify-center space-x-2 border border-slate-200 dark:border-slate-700 cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
             <span>Download Housing Levy Return</span>

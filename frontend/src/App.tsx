@@ -40,31 +40,35 @@ export const App: React.FC = () => {
   const [selectedPayslipItem, setSelectedPayslipItem] = useState<PayrollItem | null>(null);
 
   // App State with LocalStorage persistence for standalone usage
-  const [employees, setEmployees] = useState<Employee[]>(() => {
-    const saved = localStorage.getItem('smartpay_employees');
-    return saved ? JSON.parse(saved) : INITIAL_EMPLOYEES;
-  });
-  const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>(() => {
-    const saved = localStorage.getItem('smartpay_payroll_runs');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
-    const saved = localStorage.getItem('smartpay_audit_logs');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
 
-  // Persist state changes
-  useEffect(() => {
-    localStorage.setItem('smartpay_employees', JSON.stringify(employees));
-  }, [employees]);
+  const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   useEffect(() => {
-    localStorage.setItem('smartpay_payroll_runs', JSON.stringify(payrollRuns));
-  }, [payrollRuns]);
+    const fetchAllData = async () => {
+      if (!isLoggedIn || !currentUser) return;
+      try {
+        const headers = { 'x-org-id': currentUser.organization_id };
+        
+        // Fetch employees
+        const empRes = await fetch('http://127.0.0.1:8000/api/v1/employees', { headers });
+        if (empRes.ok) setEmployees(await empRes.json());
 
-  useEffect(() => {
-    localStorage.setItem('smartpay_audit_logs', JSON.stringify(auditLogs));
-  }, [auditLogs]);
+        // Fetch payroll runs
+        const runRes = await fetch('http://127.0.0.1:8000/api/v1/payroll/runs', { headers });
+        if (runRes.ok) setPayrollRuns(await runRes.json());
+
+        // Fetch audit logs
+        const auditRes = await fetch('http://127.0.0.1:8000/api/v1/reports/audit-logs', { headers });
+        if (auditRes.ok) setAuditLogs(await auditRes.json());
+      } catch (err) {
+        console.error("Failed to fetch initial data", err);
+      }
+    };
+    fetchAllData();
+  }, [isLoggedIn, currentUser]);
+
 
   // Show a toast notification
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -84,225 +88,183 @@ export const App: React.FC = () => {
   }, [darkMode]);
 
   // Calculation Function executing Kenya Statutory Logic
-  const executeKenyaPayrollRun = useCallback((periodName: string, empList?: Employee[]) => {
+  const executeKenyaPayrollRun = useCallback(async (periodName: string, empList?: Employee[]) => {
     const activeEmps = (empList || employees).filter(e => e.status === 'Active');
     if (activeEmps.length === 0) {
-      setPayrollRuns([]);
+      showToast('No active employees to process.', 'error');
       return;
     }
 
-    let totGross = 0;
-    let totPAYE = 0;
-    let totNSSF = 0;
-    let totSHIF = 0;
-    let totHousing = 0;
-    let totOther = 0;
-    let totNet = 0;
-    let totCost = 0;
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/v1/payroll/runs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-org-id': currentUser.organization_id
+        },
+        body: JSON.stringify({ period_name: periodName, country: 'Kenya', currency: 'KES' })
+      });
 
-    const items: PayrollItem[] = activeEmps.map(emp => {
-      const gross = emp.basic_salary + (emp.housing_allowance || 0) + (emp.transport_allowance || 0) + (emp.other_allowances || 0);
+      if (!response.ok) throw new Error('Failed to calculate payroll');
       
-      // NSSF
-      const nssfTier1 = Math.min(gross, 8000) * 0.06;
-      const nssfTier2 = Math.max(0, Math.min(gross, 72000) - 8000) * 0.06;
-      const nssfEmp = nssfTier1 + nssfTier2;
+      const newRun = await response.json();
+      setPayrollRuns(prev => [...prev, newRun]);
 
-      // SHIF 2.75%
-      const shifEmp = Math.max(300, gross * 0.0275);
+      // Refetch audit logs
+      const auditRes = await fetch('http://127.0.0.1:8000/api/v1/reports/audit-logs', { headers: { 'x-org-id': currentUser.organization_id } });
+      if (auditRes.ok) setAuditLogs(await auditRes.json());
 
-      // Housing Levy 1.5%
-      const housingEmp = gross * 0.015;
+      showToast(`✓ Kenya payroll for ${periodName} calculated for ${activeEmps.length} employees`, 'success');
+    } catch (err) {
+      showToast('Error calculating payroll', 'error');
+    }
+  }, [employees, currentUser]);
 
-      // Taxable Pay
-      const taxable = Math.max(0, gross - nssfEmp - shifEmp - housingEmp);
 
-      // Progressive PAYE
-      let grossPAYE = 0;
-      let rem = taxable;
-      const b1 = Math.min(rem, 24000); grossPAYE += b1 * 0.10; rem -= b1;
-      if (rem > 0) { const b2 = Math.min(rem, 8333); grossPAYE += b2 * 0.25; rem -= b2; }
-      if (rem > 0) { const b3 = Math.min(rem, 467667); grossPAYE += b3 * 0.30; rem -= b3; }
-      if (rem > 0) { grossPAYE += rem * 0.325; }
 
-      const personalRelief = 2400;
-      const payeDue = Math.max(0, grossPAYE - personalRelief);
+  const handleApprovePayroll = async (runId: string) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/payroll/runs/${runId}/approve`, {
+        method: 'POST',
+        headers: { 'x-org-id': currentUser.organization_id }
+      });
+      if (!response.ok) throw new Error('Failed to approve');
+      
+      setPayrollRuns(prev => prev.map(r => r.id === runId ? { ...r, status: 'APPROVED', approved_by: currentUser.user_name, approved_at: new Date().toISOString() } : r));
+      
+      // Refetch audit logs
+      const auditRes = await fetch('http://127.0.0.1:8000/api/v1/reports/audit-logs', { headers: { 'x-org-id': currentUser.organization_id } });
+      if (auditRes.ok) setAuditLogs(await auditRes.json());
 
-      const otherDeductions = emp.custom_deductions || 0;
-      const totalDeductions = payeDue + nssfEmp + shifEmp + housingEmp + otherDeductions;
-      const netPay = Math.max(0, gross - totalDeductions);
-      const employerCost = gross + nssfEmp + housingEmp;
-
-      totGross += gross;
-      totPAYE += payeDue;
-      totNSSF += nssfEmp;
-      totSHIF += shifEmp;
-      totHousing += housingEmp;
-      totOther += otherDeductions;
-      totNet += netPay;
-      totCost += employerCost;
-
-      return {
-        id: `item-${emp.id}`,
-        employee_id: emp.id,
-        employee_name: `${emp.first_name} ${emp.last_name}`,
-        employee_code: emp.employee_code,
-        job_title: emp.job_title,
-        basic_salary: emp.basic_salary,
-        allowances: (emp.housing_allowance || 0) + (emp.transport_allowance || 0),
-        overtime_pay: 0,
-        bonuses: 0,
-        gross_pay: gross,
-        nssf_employee: Math.round(nssfEmp * 100) / 100,
-        nssf_employer: Math.round(nssfEmp * 100) / 100,
-        shif_employee: Math.round(shifEmp * 100) / 100,
-        housing_levy_employee: Math.round(housingEmp * 100) / 100,
-        housing_levy_employer: Math.round(housingEmp * 100) / 100,
-        taxable_pay: Math.round(taxable * 100) / 100,
-        paye_tax_before_relief: Math.round(grossPAYE * 100) / 100,
-        personal_relief: personalRelief,
-        paye_tax: Math.round(payeDue * 100) / 100,
-        other_deductions: otherDeductions,
-        total_deductions: Math.round(totalDeductions * 100) / 100,
-        net_pay: Math.round(netPay * 100) / 100,
-        employer_cost: Math.round(employerCost * 100) / 100
-      };
-    });
-
-    const run: PayrollRun = {
-      id: `run-${Date.now()}`,
-      organization_id: 'default_org_id',
-      period_name: periodName,
-      country: 'Kenya',
-      currency: 'KES',
-      total_employees: activeEmps.length,
-      total_gross_pay: Math.round(totGross * 100) / 100,
-      total_paye_tax: Math.round(totPAYE * 100) / 100,
-      total_nssf: Math.round(totNSSF * 100) / 100,
-      total_shif: Math.round(totSHIF * 100) / 100,
-      total_housing_levy: Math.round(totHousing * 100) / 100,
-      total_other_deductions: Math.round(totOther * 100) / 100,
-      total_net_pay: Math.round(totNet * 100) / 100,
-      total_employer_cost: Math.round(totCost * 100) / 100,
-      status: 'CALCULATED',
-      created_at: new Date().toISOString(),
-      items: items
-    };
-
-    setPayrollRuns([run]);
-
-    // Append Audit Log
-    const log: AuditLog = {
-      id: `log-${Date.now()}`,
-      user_email: 'admin@smartpay.io',
-      action: 'PAYROLL_CALCULATED',
-      resource: `PayrollRun:${periodName}`,
-      details: `Calculated Kenya statutory gross-to-net pipeline for ${activeEmps.length} active employees`,
-      timestamp: new Date().toISOString()
-    };
-    setAuditLogs(prev => [log, ...prev]);
-    showToast(`✓ Kenya payroll for ${periodName} calculated for ${activeEmps.length} employees`, 'success');
-  }, [employees]);
-
-  // Initial Calculation of July 2026 Payroll
-  useEffect(() => {
-    executeKenyaPayrollRun('July 2026');
-  }, []);
-
-  const handleApprovePayroll = (runId: string) => {
-    setPayrollRuns(prev => prev.map(r => r.id === runId ? { ...r, status: 'APPROVED', approved_by: 'Faith Wanjiku (Owner)', approved_at: new Date().toISOString() } : r));
-    setAuditLogs(prev => [{
-      id: `log-${Date.now()}`,
-      user_email: 'admin@smartpay.io',
-      action: 'PAYROLL_APPROVED',
-      resource: `PayrollRun:${runId}`,
-      details: 'Approved Kenya payroll run for execution',
-      timestamp: new Date().toISOString()
-    }, ...prev]);
-    showToast('✓ Payroll run approved successfully', 'success');
+      showToast('✓ Payroll run approved successfully', 'success');
+    } catch (err) {
+      showToast('Error approving payroll', 'error');
+    }
   };
 
-  const handleLockPayroll = (runId: string) => {
-    setPayrollRuns(prev => prev.map(r => r.id === runId ? { ...r, status: 'LOCKED' } : r));
-    setAuditLogs(prev => [{
-      id: `log-${Date.now()}`,
-      user_email: 'admin@smartpay.io',
-      action: 'PAYROLL_LOCKED',
-      resource: `PayrollRun:${runId}`,
-      details: 'Locked payroll run and issued printable payslips',
-      timestamp: new Date().toISOString()
-    }, ...prev]);
-    showToast('✓ Payroll locked & payslips issued', 'success');
+  const handleLockPayroll = async (runId: string) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/payroll/runs/${runId}/lock`, {
+        method: 'POST',
+        headers: { 'x-org-id': currentUser.organization_id }
+      });
+      if (!response.ok) throw new Error('Failed to lock');
+      
+      setPayrollRuns(prev => prev.map(r => r.id === runId ? { ...r, status: 'LOCKED' } : r));
+      
+      // Refetch audit logs
+      const auditRes = await fetch('http://127.0.0.1:8000/api/v1/reports/audit-logs', { headers: { 'x-org-id': currentUser.organization_id } });
+      if (auditRes.ok) setAuditLogs(await auditRes.json());
+
+      showToast('✓ Payroll locked & payslips issued', 'success');
+    } catch (err) {
+      showToast('Error locking payroll', 'error');
+    }
   };
 
-  const handleAddEmployee = (newEmpData: Partial<Employee>) => {
-    const newEmp: Employee = {
-      id: `emp-${Date.now()}`,
-      employee_code: newEmpData.employee_code || `EMP-00${employees.length + 1}`,
-      first_name: newEmpData.first_name || 'New',
-      last_name: newEmpData.last_name || 'Employee',
-      email: newEmpData.email || 'employee@safaritech.co.ke',
-      job_title: newEmpData.job_title || 'Staff',
-      basic_salary: newEmpData.basic_salary || 60000,
-      housing_allowance: newEmpData.housing_allowance || 0,
-      hire_date: newEmpData.hire_date || '2026-08-01',
-      pay_frequency: 'Monthly',
-      payment_method: 'Bank Transfer',
-      bank_name: newEmpData.bank_name || 'KCB Bank',
-      bank_account_number: newEmpData.bank_account_number || '1234567890',
-      kra_pin: newEmpData.kra_pin || 'A019827364Z',
-      nssf_number: newEmpData.nssf_number || 'NSSF-998877',
-      shif_number: newEmpData.shif_number || 'SHIF-443322',
-      status: 'Active'
-    };
 
-    const updatedEmps = [...employees, newEmp];
-    setEmployees(updatedEmps);
-    executeKenyaPayrollRun('July 2026', updatedEmps);
+  const handleAddEmployee = async (newEmpData: Partial<Employee>) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/v1/employees', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-org-id': currentUser.organization_id
+        },
+        body: JSON.stringify(newEmpData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create employee');
+      }
 
-    setAuditLogs(prev => [{
-      id: `log-${Date.now()}`,
-      user_email: 'admin@smartpay.io',
-      action: 'EMPLOYEE_CREATED',
-      resource: `Employee:${newEmp.employee_code}`,
-      details: `Onboarded new staff member ${newEmp.first_name} ${newEmp.last_name}`,
-      timestamp: new Date().toISOString()
-    }, ...prev]);
-    showToast(`✓ ${newEmp.first_name} ${newEmp.last_name} added successfully`, 'success');
+      const data = await response.json();
+      const newEmp = data.employee;
+      const creds = data.login_credentials;
+
+      const updatedEmps = [...employees, newEmp];
+      setEmployees(updatedEmps);
+      executeKenyaPayrollRun('July 2026', updatedEmps);
+
+      setAuditLogs(prev => [{
+        id: `log-${Date.now()}`,
+        user_email: currentUser?.email || 'admin@smartpay.io',
+        action: 'EMPLOYEE_CREATED',
+        resource: `Employee:${newEmp.employee_code}`,
+        details: `Onboarded new staff member ${newEmp.first_name} ${newEmp.last_name}`,
+        timestamp: new Date().toISOString()
+      }, ...prev]);
+      
+      alert(`Employee Registered Successfully!\n\nPlease save these credentials for the employee to access their dashboard:\n\nUsername: ${creds.email}\nPassword: ${creds.temporary_password}`);
+      showToast(`✓ ${newEmp.first_name} ${newEmp.last_name} added successfully`, 'success');
+    } catch (err) {
+      showToast('Error creating employee', 'error');
+    }
   };
 
-  const handleEditEmployee = (updatedEmp: Employee) => {
-    const updatedEmps = employees.map(e => e.id === updatedEmp.id ? updatedEmp : e);
-    setEmployees(updatedEmps);
-    executeKenyaPayrollRun('July 2026', updatedEmps);
+  const handleEditEmployee = async (updatedEmp: Employee) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/employees/${updatedEmp.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-org-id': currentUser.organization_id
+        },
+        body: JSON.stringify(updatedEmp)
+      });
+      
+      if (!response.ok) throw new Error('Failed to update employee');
+      
+      const updated = await response.json();
+      const updatedEmps = employees.map(e => e.id === updated.id ? updated : e);
+      setEmployees(updatedEmps);
+      executeKenyaPayrollRun('July 2026', updatedEmps);
 
-    setAuditLogs(prev => [{
-      id: `log-${Date.now()}`,
-      user_email: 'admin@smartpay.io',
-      action: 'EMPLOYEE_UPDATED',
-      resource: `Employee:${updatedEmp.employee_code}`,
-      details: `Updated profile for ${updatedEmp.first_name} ${updatedEmp.last_name}`,
-      timestamp: new Date().toISOString()
-    }, ...prev]);
-    showToast(`✓ ${updatedEmp.first_name} ${updatedEmp.last_name} updated successfully`, 'success');
+      setAuditLogs(prev => [{
+        id: `log-${Date.now()}`,
+        user_email: currentUser?.email || 'admin@smartpay.io',
+        action: 'EMPLOYEE_UPDATED',
+        resource: `Employee:${updated.employee_code}`,
+        details: `Updated profile for ${updated.first_name} ${updated.last_name}`,
+        timestamp: new Date().toISOString()
+      }, ...prev]);
+      showToast(`✓ ${updated.first_name} ${updated.last_name} updated successfully`, 'success');
+    } catch (err) {
+      showToast('Error updating employee', 'error');
+    }
   };
 
-  const handleDeleteEmployee = (empId: string) => {
-    const emp = employees.find(e => e.id === empId);
-    const updatedEmps = employees.filter(e => e.id !== empId);
-    setEmployees(updatedEmps);
-    executeKenyaPayrollRun('July 2026', updatedEmps);
 
-    setAuditLogs(prev => [{
-      id: `log-${Date.now()}`,
-      user_email: 'admin@smartpay.io',
-      action: 'EMPLOYEE_DELETED',
-      resource: `Employee:${emp?.employee_code || empId}`,
-      details: `Removed employee ${emp?.first_name} ${emp?.last_name} from roster`,
-      timestamp: new Date().toISOString()
-    }, ...prev]);
-    showToast(`✓ ${emp?.first_name} ${emp?.last_name} removed from roster`, 'info');
+  const handleDeleteEmployee = async (empId: string) => {
+    try {
+      const emp = employees.find(e => e.id === empId);
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/employees/${empId}`, {
+        method: 'DELETE',
+        headers: {
+          'x-org-id': currentUser.organization_id
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to delete employee');
+      
+      const updatedEmps = employees.filter(e => e.id !== empId);
+      setEmployees(updatedEmps);
+      executeKenyaPayrollRun('July 2026', updatedEmps);
+
+      setAuditLogs(prev => [{
+        id: `log-${Date.now()}`,
+        user_email: currentUser?.email || 'admin@smartpay.io',
+        action: 'EMPLOYEE_DELETED',
+        resource: `Employee:${emp?.employee_code || empId}`,
+        details: `Removed employee ${emp?.first_name} ${emp?.last_name} from roster`,
+        timestamp: new Date().toISOString()
+      }, ...prev]);
+      showToast(`✓ ${emp?.first_name} ${emp?.last_name} removed from roster`, 'info');
+    } catch (err) {
+      showToast('Error deleting employee', 'error');
+    }
   };
+
 
   const handleLogout = () => {
     if (window.confirm('Are you sure you want to sign out of SmartPay?')) {
@@ -401,7 +363,7 @@ export const App: React.FC = () => {
           )}
 
           {activeTab === 'settings' && (
-            <SettingsPage />
+            <SettingsPage currentUser={currentUser} />
           )}
         </main>
 
@@ -431,6 +393,7 @@ export const App: React.FC = () => {
         onClose={() => setSelectedPayslipItem(null)}
         item={selectedPayslipItem}
         periodName="July 2026"
+        currentUser={currentUser}
       />
 
     </div>

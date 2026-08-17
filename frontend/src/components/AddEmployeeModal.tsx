@@ -34,11 +34,6 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onCl
     e.preventDefault();
     if (!formData.first_name || !formData.last_name || !formData.email) return;
 
-    const generatedPassword = `Pass@${Math.floor(Math.random() * 9000 + 1000)}`;
-    
-    // Show credentials to the admin
-    alert(`Employee Registered Successfully!\n\nPlease save these credentials for the employee:\n\nUsername: ${formData.email}\nPassword: ${generatedPassword}`);
-
     onAddEmployee({
       ...formData,
       status: 'Active',

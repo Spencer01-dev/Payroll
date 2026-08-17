@@ -1,14 +1,17 @@
 import os
-from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+load_dotenv()
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "SmartPay Global"
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "smartpay-super-secret-key-change-in-production-2026")
+    SECRET_KEY: str = "smartpay-super-secret-key-change-in-production-2026"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 # 24 hours
     
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./smartpay.db")
+    DATABASE_URL: str = "sqlite:///./smartpay.db"
     
     # Default Kenya Statutory Rules (2026)
     KENYA_PERSONAL_RELIEF_MONTHLY: float = 2400.0
@@ -18,7 +21,7 @@ class Settings(BaseSettings):
     KENYA_SHIF_RATE: float = 0.0275
     KENYA_HOUSING_LEVY_RATE: float = 0.015
 
-    class Config:
-        case_sensitive = True
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 settings = Settings()
+

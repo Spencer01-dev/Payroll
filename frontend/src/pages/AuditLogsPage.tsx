@@ -7,32 +7,7 @@ interface AuditLogsPageProps {
 }
 
 export const AuditLogsPage: React.FC<AuditLogsPageProps> = ({ logs }) => {
-  const sampleLogs: AuditLog[] = logs.length > 0 ? logs : [
-    {
-      id: 'log-1',
-      user_email: 'admin@smartpay.io',
-      action: 'PAYROLL_CALCULATED',
-      resource: 'PayrollRun:July-2026',
-      details: 'Calculated 2026 Kenya statutory rules for 5 employees',
-      timestamp: new Date().toISOString()
-    },
-    {
-      id: 'log-2',
-      user_email: 'admin@smartpay.io',
-      action: 'EMPLOYEE_ADDED',
-      resource: 'Employee:EMP-005',
-      details: 'Created employee profile for Kevin Mutua',
-      timestamp: new Date(Date.now() - 3600000).toISOString()
-    },
-    {
-      id: 'log-3',
-      user_email: 'system',
-      action: 'INITIAL_SEED',
-      resource: 'Organization',
-      details: 'Initialized SafariTech Kenya organization',
-      timestamp: new Date(Date.now() - 7200000).toISOString()
-    }
-  ];
+  const sampleLogs: AuditLog[] = logs;
 
   return (
     <div className="space-y-6">

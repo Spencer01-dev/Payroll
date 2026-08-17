@@ -135,7 +135,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <div>
           <div className="flex items-center space-x-2 text-xs text-teal-400 font-semibold mb-1">
             <Building2 className="w-4 h-4" />
-            <span>SafariTech Solutions Kenya Ltd • Nairobi HQ</span>
+            <span>{currentUser?.organization_name || 'Organization Overview'} • Active Workspace</span>
           </div>
           <h1 className="text-2xl font-black tracking-tight">Workforce & Payroll Overview</h1>
           <p className="text-xs text-slate-400 mt-1 max-w-xl">
@@ -155,7 +155,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-lg shadow-teal-600/30 flex items-center space-x-2 transition-all cursor-pointer"
           >
             <Play className="w-4 h-4 fill-white" />
-            <span>Process July Payroll</span>
+            <span>{latestRun ? `Process ${latestRun.period_name}` : 'Process Payroll'}</span>
           </button>
         </div>
       </div>
@@ -167,32 +167,28 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           value={`${activeCount} Staff`}
           subtext="100% Onboarded & KRA Verified"
           icon={Users}
-          trend="+2"
+          trend={activeCount > 0 ? `${activeCount} Active` : undefined}
           trendPositive={true}
           color="teal"
         />
         <StatCard
           title="Total Net Payroll (YTD)"
-          value={`KES ${(totalYtdNet || 428900).toLocaleString('en-KE')}`}
+          value={`KES ${totalYtdNet.toLocaleString('en-KE')}`}
           subtext="Direct Employee Bank Payouts"
           icon={Banknote}
-          trend="+5.2%"
-          trendPositive={true}
           color="emerald"
         />
         <StatCard
           title="KRA PAYE Liability (YTD)"
-          value={`KES ${(totalYtdPAYE || 89200).toLocaleString('en-KE')}`}
+          value={`KES ${totalYtdPAYE.toLocaleString('en-KE')}`}
           subtext="Personal Relief KES 2,400/mo applied"
           icon={TrendingUp}
-          trend="+3.1%"
-          trendPositive={true}
           color="indigo"
         />
         <StatCard
           title="Pending Approvals"
           value={latestRun?.status === 'CALCULATED' ? '1 Draft Run' : '0 Pending'}
-          subtext={latestRun?.status === 'CALCULATED' ? 'July 2026 Needs Sign-off' : 'All Runs Finalized'}
+          subtext={latestRun?.status === 'CALCULATED' ? `${latestRun.period_name} Needs Sign-off` : 'All Runs Finalized'}
           icon={ShieldAlert}
           color={latestRun?.status === 'CALCULATED' ? 'amber' : 'emerald'}
         />
@@ -205,34 +201,46 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-soft space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-500" />
-              <span>Compliance & Anomaly Watch</span>
+              <AlertTriangle className="w-4 h-4 text-teal-500" />
+              <span>Compliance & Verification</span>
             </h3>
-            <span className="text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold px-2 py-0.5 rounded-full">
-              2 Alerts
+            <span className="text-[10px] bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 font-bold px-2 py-0.5 rounded-full">
+              {activeCount > 0 ? `${activeCount} Active Staff` : 'Setup Ready'}
             </span>
           </div>
 
           <div className="space-y-3 text-xs">
-            <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 flex items-start space-x-3">
-              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-2xl bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-900/50 flex items-start space-x-3">
+              <CheckCircle2 className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-amber-900 dark:text-amber-300">Salary Spike Warning (+45%)</p>
-                <p className="text-amber-700 dark:text-amber-400 text-[11px] mt-0.5">
-                  David Ochieng's basic salary increased from KES 140,000 to KES 185,000 in July 2026.
+                <p className="font-bold text-teal-900 dark:text-teal-300">Kenya 2026 Statutory Engine Active</p>
+                <p className="text-teal-700 dark:text-teal-400 text-[11px] mt-0.5">
+                  Automated calculations for PAYE, NSSF Tier I/II, SHIF (2.75%), & Housing Levy (1.5%).
                 </p>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 flex items-start space-x-3">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-emerald-900 dark:text-emerald-300">SHIF Statutory Standard</p>
-                <p className="text-emerald-700 dark:text-emerald-400 text-[11px] mt-0.5">
-                  All 5 employees updated with valid 2.75% Social Health Insurance Fund deductions.
-                </p>
+            {latestRun ? (
+              <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 flex items-start space-x-3">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-emerald-900 dark:text-emerald-300">Payroll Cycle Synchronized</p>
+                  <p className="text-emerald-700 dark:text-emerald-400 text-[11px] mt-0.5">
+                    Latest run for {latestRun.period_name} with status: {latestRun.status}.
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 flex items-start space-x-3">
+                <CheckCircle2 className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-slate-800 dark:text-slate-200">No Pending Discrepancies</p>
+                  <p className="text-slate-500 text-[11px] mt-0.5">
+                    Add employees and run your first payroll to view live compliance insights.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

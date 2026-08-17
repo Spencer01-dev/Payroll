@@ -56,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({ darkMode, setDarkMode, onOpenCal
           {/* Org Selector */}
           <div className="hidden lg:flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 text-xs text-slate-300">
             <Building2 className="w-4 h-4 text-teal-400" />
-            <span className="font-medium">{currentUser?.organization_name || 'SafariTech Kenya Ltd'}</span>
+            <span className="font-medium">{currentUser?.organization_name || 'My Organization'}</span>
           </div>
 
           {/* Dark mode switch */}

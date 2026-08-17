@@ -69,3 +69,43 @@ def create_department(payload: DepartmentCreate, org_id: str = Depends(get_tenan
     db.refresh(dept)
     return dept
 
+@router.put("/{employee_id}", response_model=EmployeeResponse)
+def update_employee(employee_id: str, payload: EmployeeCreate, org_id: str = Depends(get_tenant_org_id), db: Session = Depends(get_db)):
+    emp = db.query(Employee).filter(Employee.id == employee_id, Employee.organization_id == org_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    
+    update_data = payload.model_dump()
+    for key, value in update_data.items():
+        setattr(emp, key, value)
+        
+    db.commit()
+    db.refresh(emp)
+    
+    # Update corresponding user full_name and email if they changed
+    user = db.query(User).filter(User.email == emp.email).first()
+    if user:
+        user.full_name = f"{payload.first_name} {payload.last_name}"
+        user.email = payload.email
+        db.commit()
+        
+    return emp
+
+@router.delete("/{employee_id}", response_model=dict)
+def delete_employee(employee_id: str, org_id: str = Depends(get_tenant_org_id), db: Session = Depends(get_db)):
+    emp = db.query(Employee).filter(Employee.id == employee_id, Employee.organization_id == org_id).first()
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee not found")
+        
+    email_to_delete = emp.email
+    db.delete(emp)
+    db.commit()
+    
+    # Optionally remove user access
+    user = db.query(User).filter(User.email == email_to_delete).first()
+    if user:
+        db.delete(user)
+        db.commit()
+        
+    return {"message": "Employee deleted successfully"}
+
