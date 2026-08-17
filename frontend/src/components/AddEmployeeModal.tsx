@@ -111,6 +111,23 @@ export const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onCl
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white"
                 />
               </div>
+              <div className="sm:col-span-2">
+                <label className="block text-slate-600 dark:text-slate-400 font-semibold mb-1">Department *</label>
+                <select
+                  value={formData.department_name}
+                  onChange={(e) => setFormData({ ...formData, department_name: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium focus:outline-none focus:border-teal-500"
+                >
+                  <option value="Engineering">Engineering</option>
+                  <option value="Human Resources">Human Resources</option>
+                  <option value="Finance & Operations">Finance & Operations</option>
+                  <option value="Sales & Marketing">Sales & Marketing</option>
+                  <option value="Customer Support">Customer Support</option>
+                  <option value="Executive & Strategy">Executive & Strategy</option>
+                  <option value="Legal & Compliance">Legal & Compliance</option>
+                  <option value="General Administration">General Administration</option>
+                </select>
+              </div>
             </div>
           </div>
 

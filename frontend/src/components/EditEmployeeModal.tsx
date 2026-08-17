@@ -16,6 +16,7 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, on
     email: '',
     phone: '',
     job_title: '',
+    department_name: 'Engineering',
     basic_salary: 0,
     housing_allowance: 0,
     transport_allowance: 0,
@@ -35,6 +36,7 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, on
         email: employee.email,
         phone: employee.phone || '',
         job_title: employee.job_title,
+        department_name: employee.department_name || 'Engineering',
         basic_salary: employee.basic_salary,
         housing_allowance: employee.housing_allowance || 0,
         transport_allowance: employee.transport_allowance || 0,
@@ -127,6 +129,23 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({ isOpen, on
                   onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white"
                 />
+              </div>
+              <div>
+                <label className="block text-slate-600 dark:text-slate-400 font-semibold mb-1">Department</label>
+                <select
+                  value={formData.department_name}
+                  onChange={(e) => setFormData({ ...formData, department_name: e.target.value })}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white font-medium"
+                >
+                  <option value="Engineering">Engineering</option>
+                  <option value="Human Resources">Human Resources</option>
+                  <option value="Finance & Operations">Finance & Operations</option>
+                  <option value="Sales & Marketing">Sales & Marketing</option>
+                  <option value="Customer Support">Customer Support</option>
+                  <option value="Executive & Strategy">Executive & Strategy</option>
+                  <option value="Legal & Compliance">Legal & Compliance</option>
+                  <option value="General Administration">General Administration</option>
+                </select>
               </div>
               <div>
                 <label className="block text-slate-600 dark:text-slate-400 font-semibold mb-1">Employment Status</label>

@@ -130,10 +130,10 @@ export const EmployeesPage: React.FC<EmployeesPageProps> = ({ employees, onOpenA
                     </div>
                   </td>
 
-                  {/* Job Title */}
+                  {/* Job Title & Department */}
                   <td className="py-3.5 px-4">
                     <span className="font-medium text-slate-700 dark:text-slate-300 block">{emp.job_title}</span>
-                    <span className="text-[10px] text-slate-400">Full-Time Staff</span>
+                    <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold">{emp.department_name || 'Engineering'}</span>
                   </td>
 
                   {/* Salary */}

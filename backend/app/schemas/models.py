@@ -30,6 +30,7 @@ class EmployeeCreate(BaseModel):
     email: EmailStr
     phone: Optional[str] = None
     department_id: Optional[str] = None
+    department_name: Optional[str] = None
     job_title: str
     hire_date: str
     basic_salary: float
