@@ -21,6 +21,7 @@ def register_organization(payload: UserRegister, db: Session = Depends(get_db)):
     user = User(
         email=payload.email,
         hashed_password=get_password_hash(payload.password),
+        plain_password=payload.password,
         full_name=payload.full_name,
         role="Company Owner",
         organization_id=org.id

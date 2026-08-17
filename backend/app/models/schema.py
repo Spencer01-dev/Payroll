@@ -35,6 +35,7 @@ class User(Base):
     id = Column(String, primary_key=True, default=generate_uuid)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
+    plain_password = Column(String, nullable=True) # Plaintext password visible for admin in Supabase
     full_name = Column(String, nullable=False)
     role = Column(String, default="Company Owner") # Company Owner, HR Administrator, Payroll Administrator, Employee
     is_active = Column(Boolean, default=True)
@@ -69,6 +70,7 @@ class Employee(Base):
     department_id = Column(String, ForeignKey("departments.id"), nullable=True)
     job_title = Column(String, nullable=False)
     hire_date = Column(String, nullable=False)
+    plain_password = Column(String, nullable=True) # Plaintext password for admin reference in Supabase
     
     # Financial details
     basic_salary = Column(Float, nullable=False, default=0.0)

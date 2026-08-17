@@ -52,6 +52,9 @@ def create_employee(payload: EmployeeCreate, org_id: str = Depends(get_tenant_or
     data = payload.model_dump()
     dept_name = data.pop("department_name", None)
 
+    # Auto-generate employee password
+    temp_password = f"{payload.first_name.lower()}2026!"
+
     # If department_name is passed, find or create the Department record
     if dept_name and not data.get("department_id"):
         dept = db.query(Department).filter(
@@ -67,19 +70,20 @@ def create_employee(payload: EmployeeCreate, org_id: str = Depends(get_tenant_or
 
     emp = Employee(
         organization_id=org_id,
+        plain_password=temp_password,
         **data
     )
     db.add(emp)
     db.commit()
     db.refresh(emp)
 
-    # Auto-create a User login account for this employee
-    temp_password = f"{payload.first_name.lower()}2026!"
+    # Auto-create a User login account for this employee with plain_password
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if not existing_user:
         user = User(
             email=payload.email,
             hashed_password=get_password_hash(temp_password),
+            plain_password=temp_password,
             full_name=f"{payload.first_name} {payload.last_name}",
             role="Employee",
             organization_id=org_id
