@@ -177,7 +177,8 @@ export const App: React.FC = () => {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to create employee');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to create employee');
       }
 
       const data = await response.json();
@@ -186,7 +187,6 @@ export const App: React.FC = () => {
 
       const updatedEmps = [...employees, newEmp];
       setEmployees(updatedEmps);
-      executeKenyaPayrollRun('July 2026', updatedEmps);
 
       setAuditLogs(prev => [{
         id: `log-${Date.now()}`,
@@ -199,8 +199,8 @@ export const App: React.FC = () => {
       
       alert(`Employee Registered Successfully!\n\nPlease save these credentials for the employee to access their dashboard:\n\nUsername: ${creds.email}\nPassword: ${creds.temporary_password}`);
       showToast(`✓ ${newEmp.first_name} ${newEmp.last_name} added successfully`, 'success');
-    } catch (err) {
-      showToast('Error creating employee', 'error');
+    } catch (err: any) {
+      showToast(err.message || 'Error creating employee', 'error');
     }
   };
 

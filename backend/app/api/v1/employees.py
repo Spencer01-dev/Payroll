@@ -14,13 +14,60 @@ def get_tenant_org_id(x_org_id: str = Header(default="default_org_id")):
 @router.get("", response_model=List[EmployeeResponse])
 def get_employees(org_id: str = Depends(get_tenant_org_id), db: Session = Depends(get_db)):
     employees = db.query(Employee).filter(Employee.organization_id == org_id).all()
-    return employees
+    result = []
+    for emp in employees:
+        dept_name = emp.department.name if emp.department else None
+        emp_res = EmployeeResponse(
+            id=emp.id,
+            organization_id=emp.organization_id,
+            employee_code=emp.employee_code,
+            first_name=emp.first_name,
+            last_name=emp.last_name,
+            email=emp.email,
+            phone=emp.phone,
+            department_id=emp.department_id,
+            department_name=dept_name,
+            job_title=emp.job_title,
+            hire_date=emp.hire_date,
+            basic_salary=emp.basic_salary,
+            pay_frequency=emp.pay_frequency,
+            payment_method=emp.payment_method,
+            bank_name=emp.bank_name,
+            bank_account_number=emp.bank_account_number,
+            kra_pin=emp.kra_pin,
+            nssf_number=emp.nssf_number,
+            shif_number=emp.shif_number,
+            housing_allowance=emp.housing_allowance,
+            transport_allowance=emp.transport_allowance,
+            other_allowances=emp.other_allowances,
+            custom_deductions=emp.custom_deductions,
+            status=emp.status,
+            created_at=emp.created_at
+        )
+        result.append(emp_res)
+    return result
 
 @router.post("", response_model=dict)
 def create_employee(payload: EmployeeCreate, org_id: str = Depends(get_tenant_org_id), db: Session = Depends(get_db)):
+    data = payload.model_dump()
+    dept_name = data.pop("department_name", None)
+
+    # If department_name is passed, find or create the Department record
+    if dept_name and not data.get("department_id"):
+        dept = db.query(Department).filter(
+            Department.organization_id == org_id,
+            Department.name == dept_name
+        ).first()
+        if not dept:
+            dept = Department(organization_id=org_id, name=dept_name)
+            db.add(dept)
+            db.commit()
+            db.refresh(dept)
+        data["department_id"] = dept.id
+
     emp = Employee(
         organization_id=org_id,
-        **payload.model_dump()
+        **data
     )
     db.add(emp)
     db.commit()
@@ -43,11 +90,18 @@ def create_employee(payload: EmployeeCreate, org_id: str = Depends(get_tenant_or
     return {
         "employee": {
             "id": emp.id,
+            "organization_id": emp.organization_id,
             "employee_code": emp.employee_code,
             "first_name": emp.first_name,
             "last_name": emp.last_name,
             "email": emp.email,
             "job_title": emp.job_title,
+            "department_id": emp.department_id,
+            "department_name": dept_name,
+            "basic_salary": emp.basic_salary,
+            "status": emp.status,
+            "kra_pin": emp.kra_pin,
+            "hire_date": emp.hire_date
         },
         "login_credentials": {
             "email": payload.email,
@@ -76,6 +130,20 @@ def update_employee(employee_id: str, payload: EmployeeCreate, org_id: str = Dep
         raise HTTPException(status_code=404, detail="Employee not found")
     
     update_data = payload.model_dump()
+    dept_name = update_data.pop("department_name", None)
+
+    if dept_name and not update_data.get("department_id"):
+        dept = db.query(Department).filter(
+            Department.organization_id == org_id,
+            Department.name == dept_name
+        ).first()
+        if not dept:
+            dept = Department(organization_id=org_id, name=dept_name)
+            db.add(dept)
+            db.commit()
+            db.refresh(dept)
+        update_data["department_id"] = dept.id
+
     for key, value in update_data.items():
         setattr(emp, key, value)
         
@@ -89,7 +157,33 @@ def update_employee(employee_id: str, payload: EmployeeCreate, org_id: str = Dep
         user.email = payload.email
         db.commit()
         
-    return emp
+    return EmployeeResponse(
+        id=emp.id,
+        organization_id=emp.organization_id,
+        employee_code=emp.employee_code,
+        first_name=emp.first_name,
+        last_name=emp.last_name,
+        email=emp.email,
+        phone=emp.phone,
+        department_id=emp.department_id,
+        department_name=dept_name or (emp.department.name if emp.department else None),
+        job_title=emp.job_title,
+        hire_date=emp.hire_date,
+        basic_salary=emp.basic_salary,
+        pay_frequency=emp.pay_frequency,
+        payment_method=emp.payment_method,
+        bank_name=emp.bank_name,
+        bank_account_number=emp.bank_account_number,
+        kra_pin=emp.kra_pin,
+        nssf_number=emp.nssf_number,
+        shif_number=emp.shif_number,
+        housing_allowance=emp.housing_allowance,
+        transport_allowance=emp.transport_allowance,
+        other_allowances=emp.other_allowances,
+        custom_deductions=emp.custom_deductions,
+        status=emp.status,
+        created_at=emp.created_at
+    )
 
 @router.delete("/{employee_id}", response_model=dict)
 def delete_employee(employee_id: str, org_id: str = Depends(get_tenant_org_id), db: Session = Depends(get_db)):
