@@ -22,6 +22,7 @@ const INITIAL_EMPLOYEES: Employee[] = [];
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [darkMode, setDarkMode] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Auth State
   const [token, setToken] = useState<string | null>(localStorage.getItem('smartpay_token'));
@@ -309,16 +310,24 @@ export const App: React.FC = () => {
         onOpenCalculator={() => setIsCalcOpen(true)}
         onLogout={handleLogout}
         currentUser={currentUser}
+        isMobileMenuOpen={isMobileMenuOpen}
+        onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
       />
 
       {/* Body: Sidebar + Main Workspace */}
       <div className="flex-1 flex overflow-hidden">
         
-        {/* Left Sidebar */}
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} currentUser={currentUser} />
+        {/* Left Sidebar (Desktop fixed + Mobile slide-out drawer) */}
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          currentUser={currentUser}
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
+        />
 
-        {/* Main Content Area */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+        {/* Main Content Area with smooth touch scroll and mobile responsive padding */}
+        <main className="flex-1 p-3.5 sm:p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full pb-20 md:pb-8">
           {activeTab === 'dashboard' && (
             <DashboardPage
               employees={employees}

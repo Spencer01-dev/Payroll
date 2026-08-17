@@ -131,37 +131,37 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     <div className="space-y-6">
       
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-navy-900 to-slate-900 rounded-3xl p-6 text-white border border-slate-800 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-gradient-to-r from-slate-900 via-navy-900 to-slate-900 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-white border border-slate-800 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center space-x-2 text-xs text-teal-400 font-semibold mb-1">
             <Building2 className="w-4 h-4" />
             <span>{currentUser?.organization_name || 'Organization Overview'} • Active Workspace</span>
           </div>
-          <h1 className="text-2xl font-black tracking-tight">Workforce & Payroll Overview</h1>
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight">Workforce & Payroll Overview</h1>
           <p className="text-xs text-slate-400 mt-1 max-w-xl">
             Kenya Statutory Ruleset (2026) active: KRA PAYE bands, NSSF Tier I/II, SHIF 2.75%, & Affordable Housing Levy 1.5%.
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto shrink-0">
           <button
             onClick={onOpenCalculator}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
+            className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all text-center cursor-pointer"
           >
             Open KRA Calculator
           </button>
           <button
             onClick={() => onNavigate('payroll')}
-            className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-lg shadow-teal-600/30 flex items-center space-x-2 transition-all cursor-pointer"
+            className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-lg shadow-teal-600/30 flex items-center justify-center space-x-2 transition-all cursor-pointer"
           >
-            <Play className="w-4 h-4 fill-white" />
+            <Play className="w-4 h-4 fill-white shrink-0" />
             <span>{latestRun ? `Process ${latestRun.period_name}` : 'Process Payroll'}</span>
           </button>
         </div>
       </div>
 
       {/* Metric Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
         <StatCard
           title="Active Workforce"
           value={`${activeCount} Staff`}

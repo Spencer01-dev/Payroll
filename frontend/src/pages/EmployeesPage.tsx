@@ -36,28 +36,28 @@ export const EmployeesPage: React.FC<EmployeesPageProps> = ({ employees, onOpenA
           <p className="text-xs text-slate-500">Manage workforce contracts, basic salaries, & KRA statutory IDs</p>
         </div>
 
-        <div className="flex items-center space-x-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           <button
             onClick={() => alert("CSV Employee Bulk Template exported successfully!")}
-            className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center space-x-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>Export CSV</span>
           </button>
           
           <button
             onClick={() => setIsDeptModalOpen(true)}
-            className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+            className="flex-1 sm:flex-initial flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
           >
-            <Building className="w-4 h-4" />
-            <span>Add Department</span>
+            <Building className="w-4 h-4 shrink-0" />
+            <span>Add Dept</span>
           </button>
 
           <button
             onClick={onOpenAddModal}
-            className="flex items-center space-x-2 bg-teal-600 hover:bg-teal-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-teal-600/20 transition-all cursor-pointer"
+            className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-teal-600 hover:bg-teal-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-teal-600/20 transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 shrink-0" />
             <span>Add New Employee</span>
           </button>
         </div>
