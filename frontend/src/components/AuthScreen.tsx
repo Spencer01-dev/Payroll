@@ -15,16 +15,25 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess, onShowTo
   const [orgName, setOrgName] = useState('');
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [statusNotice, setStatusNotice] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage(null);
+    setStatusNotice(null);
+
+    // Warm-up / cold-start notice timer for Render instances
+    const timer = setTimeout(() => {
+      setStatusNotice('Connecting to server (Render cold-start may take ~30s on first load)...');
+    }, 3500);
 
     try {
       const endpoint = isLoginView ? '/api/v1/auth/login' : '/api/v1/auth/register';
       const payload = isLoginView 
-        ? { email, password }
-        : { email, password, organization_name: orgName, full_name: fullName };
+        ? { email: email.trim(), password }
+        : { email: email.trim(), password, organization_name: orgName.trim(), full_name: fullName.trim() };
 
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
@@ -32,16 +41,28 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess, onShowTo
         body: JSON.stringify(payload)
       });
 
-      const data = await response.json();
+      clearTimeout(timer);
+      setStatusNotice(null);
+
+      let data: any = {};
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        throw new Error(`Server returned invalid response (Status ${response.status}). Please check API URL.`);
+      }
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Authentication failed');
+        throw new Error(data.detail || 'Authentication failed. Please verify your credentials.');
       }
 
       onShowToast(isLoginView ? 'Welcome back!' : 'Account created successfully!', 'success');
       onLoginSuccess(data.access_token, data);
     } catch (err: any) {
-      onShowToast(err.message, 'error');
+      clearTimeout(timer);
+      setStatusNotice(null);
+      const msg = err.message || 'Unable to connect to server. Please check your internet connection or backend status.';
+      setErrorMessage(msg);
+      onShowToast(msg, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -59,6 +80,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess, onShowTo
             {isLoginView ? 'Welcome back. Please enter your details.' : 'Create your organization account.'}
           </p>
         </div>
+
+        {errorMessage && (
+          <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-3.5 text-xs text-rose-300 flex items-start gap-2.5 animate-in fade-in">
+            <span className="text-rose-400 text-sm">⚠️</span>
+            <div className="flex-1 leading-relaxed">{errorMessage}</div>
+          </div>
+        )}
+
+        {statusNotice && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5 text-xs text-amber-300 flex items-start gap-2.5 animate-in fade-in">
+            <span className="text-amber-400 text-sm animate-spin">⏳</span>
+            <div className="flex-1 leading-relaxed">{statusNotice}</div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLoginView && (

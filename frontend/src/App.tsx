@@ -286,7 +286,20 @@ export const App: React.FC = () => {
 
   // Login Screen
   if (!isLoggedIn) {
-    return <AuthScreen onLoginSuccess={handleLoginSuccess} onShowToast={showToast} />;
+    return (
+      <>
+        {toast && (
+          <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-2xl shadow-xl text-xs font-bold border animate-in slide-in-from-right fade-in duration-300 ${
+            toast.type === 'success' ? 'bg-emerald-600 text-white border-emerald-500' :
+            toast.type === 'error' ? 'bg-rose-600 text-white border-rose-500' :
+            'bg-slate-800 text-slate-100 border-slate-700'
+          }`}>
+            {toast.message}
+          </div>
+        )}
+        <AuthScreen onLoginSuccess={handleLoginSuccess} onShowToast={showToast} />
+      </>
+    );
   }
 
   return (
