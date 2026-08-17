@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 interface AuthScreenProps {
   onLoginSuccess: (token: string, user: any) => void;
@@ -25,7 +26,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess, onShowTo
         ? { email, password }
         : { email, password, organization_name: orgName, full_name: fullName };
 
-      const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

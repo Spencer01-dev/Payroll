@@ -14,6 +14,7 @@ import { EditEmployeeModal } from './components/EditEmployeeModal';
 import { PayslipViewerModal } from './components/PayslipViewerModal';
 import { AuthScreen } from './components/AuthScreen';
 import { Employee, PayrollRun, PayrollItem, AuditLog } from './types';
+import { API_BASE_URL } from './config';
 
 const INITIAL_EMPLOYEES: Employee[] = [];
 
@@ -52,15 +53,15 @@ export const App: React.FC = () => {
         const headers = { 'x-org-id': currentUser.organization_id };
         
         // Fetch employees
-        const empRes = await fetch('http://127.0.0.1:8000/api/v1/employees', { headers });
+        const empRes = await fetch(`${API_BASE_URL}/api/v1/employees`, { headers });
         if (empRes.ok) setEmployees(await empRes.json());
 
         // Fetch payroll runs
-        const runRes = await fetch('http://127.0.0.1:8000/api/v1/payroll/runs', { headers });
+        const runRes = await fetch(`${API_BASE_URL}/api/v1/payroll/runs`, { headers });
         if (runRes.ok) setPayrollRuns(await runRes.json());
 
         // Fetch audit logs
-        const auditRes = await fetch('http://127.0.0.1:8000/api/v1/reports/audit-logs', { headers });
+        const auditRes = await fetch(`${API_BASE_URL}/api/v1/reports/audit-logs`, { headers });
         if (auditRes.ok) setAuditLogs(await auditRes.json());
       } catch (err) {
         console.error("Failed to fetch initial data", err);
@@ -96,7 +97,7 @@ export const App: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/payroll/runs', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/payroll/runs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,7 +112,7 @@ export const App: React.FC = () => {
       setPayrollRuns(prev => [...prev, newRun]);
 
       // Refetch audit logs
-      const auditRes = await fetch('http://127.0.0.1:8000/api/v1/reports/audit-logs', { headers: { 'x-org-id': currentUser.organization_id } });
+      const auditRes = await fetch(`${API_BASE_URL}/api/v1/reports/audit-logs`, { headers: { 'x-org-id': currentUser.organization_id } });
       if (auditRes.ok) setAuditLogs(await auditRes.json());
 
       showToast(`✓ Kenya payroll for ${periodName} calculated for ${activeEmps.length} employees`, 'success');
@@ -124,7 +125,7 @@ export const App: React.FC = () => {
 
   const handleApprovePayroll = async (runId: string) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/payroll/runs/${runId}/approve`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/payroll/runs/${runId}/approve`, {
         method: 'POST',
         headers: { 'x-org-id': currentUser.organization_id }
       });
@@ -133,7 +134,7 @@ export const App: React.FC = () => {
       setPayrollRuns(prev => prev.map(r => r.id === runId ? { ...r, status: 'APPROVED', approved_by: currentUser.user_name, approved_at: new Date().toISOString() } : r));
       
       // Refetch audit logs
-      const auditRes = await fetch('http://127.0.0.1:8000/api/v1/reports/audit-logs', { headers: { 'x-org-id': currentUser.organization_id } });
+      const auditRes = await fetch(`${API_BASE_URL}/api/v1/reports/audit-logs`, { headers: { 'x-org-id': currentUser.organization_id } });
       if (auditRes.ok) setAuditLogs(await auditRes.json());
 
       showToast('✓ Payroll run approved successfully', 'success');
@@ -144,7 +145,7 @@ export const App: React.FC = () => {
 
   const handleLockPayroll = async (runId: string) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/payroll/runs/${runId}/lock`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/payroll/runs/${runId}/lock`, {
         method: 'POST',
         headers: { 'x-org-id': currentUser.organization_id }
       });
@@ -153,7 +154,7 @@ export const App: React.FC = () => {
       setPayrollRuns(prev => prev.map(r => r.id === runId ? { ...r, status: 'LOCKED' } : r));
       
       // Refetch audit logs
-      const auditRes = await fetch('http://127.0.0.1:8000/api/v1/reports/audit-logs', { headers: { 'x-org-id': currentUser.organization_id } });
+      const auditRes = await fetch(`${API_BASE_URL}/api/v1/reports/audit-logs`, { headers: { 'x-org-id': currentUser.organization_id } });
       if (auditRes.ok) setAuditLogs(await auditRes.json());
 
       showToast('✓ Payroll locked & payslips issued', 'success');
@@ -165,7 +166,7 @@ export const App: React.FC = () => {
 
   const handleAddEmployee = async (newEmpData: Partial<Employee>) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/employees', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/employees`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -204,7 +205,7 @@ export const App: React.FC = () => {
 
   const handleEditEmployee = async (updatedEmp: Employee) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/employees/${updatedEmp.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/employees/${updatedEmp.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -238,7 +239,7 @@ export const App: React.FC = () => {
   const handleDeleteEmployee = async (empId: string) => {
     try {
       const emp = employees.find(e => e.id === empId);
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/employees/${empId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/employees/${empId}`, {
         method: 'DELETE',
         headers: {
           'x-org-id': currentUser.organization_id
