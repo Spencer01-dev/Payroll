@@ -17,6 +17,7 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user_email: str
+    email: Optional[str] = None
     user_name: str
     role: str
     organization_id: str

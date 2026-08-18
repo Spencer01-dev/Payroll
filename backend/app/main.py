@@ -4,7 +4,7 @@ from app.core.config import settings
 from app.db.base import Base, engine, SessionLocal
 from app.models.schema import Organization, User, Department, Employee, AuditLog
 from app.core.security import get_password_hash
-from app.api.v1 import auth, employees, payroll, reports
+from app.api.v1 import auth, employees, payroll, reports, portal
 from app.services.payroll.kenya import KenyaPayrollEngine
 
 app = FastAPI(
@@ -27,6 +27,7 @@ app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(employees.router, prefix=settings.API_V1_STR)
 app.include_router(payroll.router, prefix=settings.API_V1_STR)
 app.include_router(reports.router, prefix=settings.API_V1_STR)
+app.include_router(portal.router, prefix=settings.API_V1_STR)
 
 @app.on_event("startup")
 def startup_event():

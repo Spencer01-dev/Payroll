@@ -1,16 +1,38 @@
+import bcrypt
+import jwt
 from datetime import datetime, timedelta
 from typing import Any, Optional, Union
-import jwt
 from passlib.context import CryptContext
 from app.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    if not plain_password or not hashed_password:
+        return False
+    # Direct bcrypt verification (prevents passlib wrap bug on bcrypt >= 4.1)
+    try:
+        pwd_bytes = plain_password.encode("utf-8")[:72]
+        hash_bytes = hashed_password.encode("utf-8")
+        if bcrypt.checkpw(pwd_bytes, hash_bytes):
+            return True
+    except Exception:
+        pass
+    
+    # Fallback to passlib verification
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        return False
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    # Direct bcrypt hashing (safely handles 72-byte max)
+    try:
+        pwd_bytes = password.encode("utf-8")[:72]
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
+    except Exception:
+        return pwd_context.hash(password)
 
 def create_access_token(subject: Union[str, Any], org_id: Optional[str] = None, role: Optional[str] = None, expires_delta: Optional[timedelta] = None) -> str:
     if expires_delta:

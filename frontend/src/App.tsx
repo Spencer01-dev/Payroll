@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { DashboardPage } from './pages/DashboardPage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { PayrollPage } from './pages/PayrollPage';
@@ -8,6 +9,18 @@ import { PayslipsPage } from './pages/PayslipsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { AuditLogsPage } from './pages/AuditLogsPage';
 import { SettingsPage } from './pages/SettingsPage';
+
+// Employee Portal Pages
+import { EmployeeDashboard } from './pages/EmployeeDashboard';
+import { EmployeeProfilePage } from './pages/EmployeeProfilePage';
+import { EmployeeSalaryPage } from './pages/EmployeeSalaryPage';
+import { EmployeeLeavePage } from './pages/EmployeeLeavePage';
+import { EmployeeAttendancePage } from './pages/EmployeeAttendancePage';
+import { EmployeeLoansPage } from './pages/EmployeeLoansPage';
+import { EmployeeDocumentsPage } from './pages/EmployeeDocumentsPage';
+import { EmployeeHelpdeskPage } from './pages/EmployeeHelpdeskPage';
+import { AdminApprovalsPage } from './pages/AdminApprovalsPage';
+
 import { PayrollCalculatorModal } from './components/PayrollCalculatorModal';
 import { AddEmployeeModal } from './components/AddEmployeeModal';
 import { EditEmployeeModal } from './components/EditEmployeeModal';
@@ -31,6 +44,7 @@ export const App: React.FC = () => {
   );
   
   const isLoggedIn = !!token;
+  const isEmployee = currentUser?.role === 'Employee';
   
   // Toast notification state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -282,6 +296,7 @@ export const App: React.FC = () => {
     localStorage.setItem('smartpay_user', JSON.stringify(user));
     setToken(newToken);
     setCurrentUser(user);
+    setActiveTab('dashboard');
   };
 
   // Login Screen
@@ -340,17 +355,28 @@ export const App: React.FC = () => {
         />
 
         {/* Main Content Area with smooth touch scroll and mobile responsive padding */}
-        <main className="flex-1 p-3.5 sm:p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full pb-20 md:pb-8">
+        <main className="flex-1 p-3.5 sm:p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full pb-24 md:pb-8">
+          {/* Dashboard Route - Dynamic based on role */}
           {activeTab === 'dashboard' && (
-            <DashboardPage
-              employees={employees}
-              payrollRuns={payrollRuns}
-              onNavigate={setActiveTab}
-              onOpenCalculator={() => setIsCalcOpen(true)}
-              currentUser={currentUser}
-            />
+            isEmployee ? (
+              <EmployeeDashboard
+                currentUser={currentUser}
+                onNavigate={setActiveTab}
+                onViewPayslip={(item) => setSelectedPayslipItem(item)}
+                payrollRuns={payrollRuns}
+              />
+            ) : (
+              <DashboardPage
+                employees={employees}
+                payrollRuns={payrollRuns}
+                onNavigate={setActiveTab}
+                onOpenCalculator={() => setIsCalcOpen(true)}
+                currentUser={currentUser}
+              />
+            )
           )}
 
+          {/* Admin Routes */}
           {activeTab === 'employees' && (
             <EmployeesPage
               employees={employees}
@@ -367,6 +393,13 @@ export const App: React.FC = () => {
               onApprovePayroll={handleApprovePayroll}
               onLockPayroll={handleLockPayroll}
               onViewPayslip={(item) => setSelectedPayslipItem(item)}
+            />
+          )}
+
+          {activeTab === 'admin_approvals' && (
+            <AdminApprovalsPage
+              currentUser={currentUser}
+              onShowToast={showToast}
             />
           )}
 
@@ -388,9 +421,65 @@ export const App: React.FC = () => {
           {activeTab === 'settings' && (
             <SettingsPage currentUser={currentUser} />
           )}
+
+          {/* Employee Portal Specific Routes */}
+          {activeTab === 'emp_profile' && (
+            <EmployeeProfilePage
+              currentUser={currentUser}
+              onShowToast={showToast}
+            />
+          )}
+
+          {activeTab === 'emp_salary' && (
+            <EmployeeSalaryPage
+              currentUser={currentUser}
+            />
+          )}
+
+          {activeTab === 'emp_leave' && (
+            <EmployeeLeavePage
+              currentUser={currentUser}
+              onShowToast={showToast}
+            />
+          )}
+
+          {activeTab === 'emp_attendance' && (
+            <EmployeeAttendancePage
+              currentUser={currentUser}
+              onShowToast={showToast}
+            />
+          )}
+
+          {activeTab === 'emp_loans' && (
+            <EmployeeLoansPage
+              currentUser={currentUser}
+              onShowToast={showToast}
+            />
+          )}
+
+          {activeTab === 'emp_documents' && (
+            <EmployeeDocumentsPage
+              currentUser={currentUser}
+              onShowToast={showToast}
+            />
+          )}
+
+          {activeTab === 'emp_helpdesk' && (
+            <EmployeeHelpdeskPage
+              currentUser={currentUser}
+              onShowToast={showToast}
+            />
+          )}
         </main>
 
       </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        currentUser={currentUser}
+      />
 
       {/* Global Modals */}
       <PayrollCalculatorModal
@@ -422,3 +511,4 @@ export const App: React.FC = () => {
     </div>
   );
 };
+

@@ -8,6 +8,13 @@ import {
   History, 
   Settings,
   ShieldCheck,
+  CheckSquare,
+  Clock,
+  PlaneTakeoff,
+  PiggyBank,
+  HelpCircle,
+  FolderArchive,
+  User,
   X
 } from 'lucide-react';
 
@@ -28,15 +35,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const isEmployee = currentUser?.role === 'Employee';
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, showForEmployee: true },
-    { id: 'employees', label: 'Employees', icon: Users, showForEmployee: false },
-    { id: 'payroll', label: 'Payroll Console', icon: Banknote, showForEmployee: false },
-    { id: 'payslips', label: 'Payslips', icon: FileText, showForEmployee: true },
-    { id: 'reports', label: 'Statutory Reports', icon: BarChart3, showForEmployee: false },
-    { id: 'audit', label: 'Audit Logs', icon: History, showForEmployee: false },
-    { id: 'settings', label: 'Country & Settings', icon: Settings, showForEmployee: false },
-  ].filter(item => !isEmployee || item.showForEmployee);
+  const employeeMenuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'emp_profile', label: 'My Profile', icon: User },
+    { id: 'emp_salary', label: 'Salary & Tax', icon: Banknote },
+    { id: 'payslips', label: 'Payslip History', icon: FileText },
+    { id: 'emp_leave', label: 'Leave Requests', icon: PlaneTakeoff },
+    { id: 'emp_attendance', label: 'Attendance & Clock', icon: Clock },
+    { id: 'emp_loans', label: 'Loans & Advances', icon: PiggyBank },
+    { id: 'emp_documents', label: 'Document Vault', icon: FolderArchive },
+    { id: 'emp_helpdesk', label: 'HR Helpdesk', icon: HelpCircle },
+  ];
+
+  const adminMenuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'employees', label: 'Employees & Roster', icon: Users },
+    { id: 'payroll', label: 'Payroll Console', icon: Banknote },
+    { id: 'admin_approvals', label: 'Approvals & HR Desk', icon: CheckSquare },
+    { id: 'payslips', label: 'All Payslips', icon: FileText },
+    { id: 'reports', label: 'Statutory Reports', icon: BarChart3 },
+    { id: 'audit', label: 'Audit Logs', icon: History },
+    { id: 'settings', label: 'Country & Settings', icon: Settings },
+  ];
+
+  const menuItems = isEmployee ? employeeMenuItems : adminMenuItems;
 
   const handleSelectTab = (tabId: string) => {
     setActiveTab(tabId);
@@ -48,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="space-y-1">
         <div className="flex items-center justify-between px-3 mb-3">
           <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-            Main Navigation
+            {isEmployee ? 'Employee Self-Service' : 'Admin & Payroll Console'}
           </p>
           {onCloseMobile && (
             <button 
@@ -74,8 +96,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'hover:bg-slate-800 hover:text-white text-slate-400'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-teal-400' : 'text-slate-400'}`} />
-              <span>{item.label}</span>
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-teal-400' : 'text-slate-400'}`} />
+              <span className="truncate">{item.label}</span>
             </button>
           );
         })}

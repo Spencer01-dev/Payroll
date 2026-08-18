@@ -90,3 +90,93 @@ export interface StatutoryRuleSet {
   shif_rate: number;
   housing_levy_rate: number;
 }
+
+export interface LeaveRequestItem {
+  id: string;
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  days: number;
+  reason?: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  approved_by?: string;
+  created_at: string;
+}
+
+export interface AttendanceRecordItem {
+  id: string;
+  date: string;
+  clock_in?: string;
+  clock_out?: string;
+  working_hours: number;
+  overtime_hours: number;
+  status: string;
+}
+
+export interface LoanRequestItem {
+  id: string;
+  request_type: string;
+  amount: number;
+  monthly_deduction: number;
+  amount_paid: number;
+  remaining_balance: number;
+  reason?: string;
+  status: 'Pending' | 'Approved' | 'Active' | 'Completed' | 'Rejected';
+  approved_by?: string;
+  created_at: string;
+}
+
+export interface HRTicketItem {
+  id: string;
+  ticket_number: string;
+  category: string;
+  subject: string;
+  message: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Urgent';
+  status: 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+  response?: string;
+  responded_by?: string;
+  resolved_at?: string;
+  created_at: string;
+}
+
+export interface EmployeeDocumentItem {
+  id: string;
+  title: string;
+  category: string;
+  file_url?: string;
+  uploaded_by: string;
+  created_at: string;
+}
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface PortalDashboardSummary {
+  employee_id: string;
+  employee_name: string;
+  employee_code: string;
+  job_title: string;
+  department_id?: string;
+  basic_salary: number;
+  latest_net_pay: number;
+  ytd_gross: number;
+  ytd_net: number;
+  ytd_tax: number;
+  leave_balance: number;
+  attendance_today: {
+    clocked_in?: string;
+    clocked_out?: string;
+    status: string;
+  };
+  pending_requests: number;
+  unread_notifications: number;
+  total_payslips: number;
+}
+

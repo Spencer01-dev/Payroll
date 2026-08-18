@@ -214,3 +214,103 @@ class CountryRule(Base):
     effective_to = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     version = Column(Integer, default=1)
+
+
+class LeaveRequest(Base):
+    __tablename__ = "leave_requests"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    organization_id = Column(String, nullable=False)
+    employee_id = Column(String, ForeignKey("employees.id"), nullable=False)
+    employee_name = Column(String, nullable=False)
+    leave_type = Column(String, nullable=False) # Annual Leave, Sick Leave, Maternity Leave, Paternity Leave, Compassionate
+    start_date = Column(String, nullable=False)
+    end_date = Column(String, nullable=False)
+    days = Column(Integer, nullable=False)
+    reason = Column(Text, nullable=True)
+    status = Column(String, default="Pending") # Pending, Approved, Rejected
+    approved_by = Column(String, nullable=True)
+    approved_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class AttendanceRecord(Base):
+    __tablename__ = "attendance_records"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    organization_id = Column(String, nullable=False)
+    employee_id = Column(String, ForeignKey("employees.id"), nullable=False)
+    employee_name = Column(String, nullable=False)
+    date = Column(String, nullable=False) # YYYY-MM-DD
+    clock_in = Column(String, nullable=True) # HH:MM:SS
+    clock_out = Column(String, nullable=True)
+    working_hours = Column(Float, default=0.0)
+    overtime_hours = Column(Float, default=0.0)
+    status = Column(String, default="Present") # Present, Late, Half Day, Absent, On Leave
+    notes = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class LoanRequest(Base):
+    __tablename__ = "loan_requests"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    organization_id = Column(String, nullable=False)
+    employee_id = Column(String, ForeignKey("employees.id"), nullable=False)
+    employee_name = Column(String, nullable=False)
+    request_type = Column(String, default="Salary Advance") # Salary Advance, Personal Loan, Emergency Loan
+    amount = Column(Float, nullable=False)
+    monthly_deduction = Column(Float, nullable=False)
+    amount_paid = Column(Float, default=0.0)
+    remaining_balance = Column(Float, nullable=False)
+    reason = Column(Text, nullable=True)
+    status = Column(String, default="Pending") # Pending, Approved, Active, Completed, Rejected
+    approved_by = Column(String, nullable=True)
+    approved_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class HRTicket(Base):
+    __tablename__ = "hr_tickets"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    ticket_number = Column(String, nullable=False) # e.g. HR-1042
+    organization_id = Column(String, nullable=False)
+    employee_id = Column(String, ForeignKey("employees.id"), nullable=False)
+    employee_name = Column(String, nullable=False)
+    category = Column(String, nullable=False) # Salary Query, Payslip Correction, Leave Issue, Tax Info, Employment Letter, General
+    subject = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    priority = Column(String, default="Medium") # Low, Medium, High, Urgent
+    status = Column(String, default="Open") # Open, In Progress, Resolved, Closed
+    response = Column(Text, nullable=True)
+    responded_by = Column(String, nullable=True)
+    resolved_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class EmployeeDocument(Base):
+    __tablename__ = "employee_documents"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    organization_id = Column(String, nullable=False)
+    employee_id = Column(String, nullable=True) # None = Company-wide document
+    title = Column(String, nullable=False)
+    category = Column(String, nullable=False) # Contract, Policy, Tax Document, Payslip, Certificate, Handbook
+    file_url = Column(String, nullable=True)
+    uploaded_by = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    organization_id = Column(String, nullable=False)
+    user_email = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    notification_type = Column(String, default="info") # info, success, warning, payslip, leave, loan
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+

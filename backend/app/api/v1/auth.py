@@ -36,6 +36,7 @@ def register_organization(payload: UserRegister, db: Session = Depends(get_db)):
         return TokenResponse(
             access_token=token,
             user_email=user.email,
+            email=user.email,
             user_name=user.full_name,
             role=user.role,
             organization_id=org.id,
@@ -61,6 +62,7 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
         return TokenResponse(
             access_token=token,
             user_email=user.email,
+            email=user.email,
             user_name=user.full_name,
             role=user.role,
             organization_id=user.organization_id or "default_org",

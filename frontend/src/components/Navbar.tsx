@@ -1,5 +1,6 @@
-import React from 'react';
-import { Building2, Calculator, Moon, Sun, LogOut, Menu, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Building2, Calculator, Moon, Sun, LogOut, Menu, X, Bell } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 interface NavbarProps {
   darkMode: boolean;
@@ -20,6 +21,55 @@ export const Navbar: React.FC<NavbarProps> = ({
   isMobileMenuOpen = false,
   onToggleMobileMenu
 }) => {
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const userEmail = currentUser?.user_email || currentUser?.email || '';
+
+  const fetchNotifications = async () => {
+    if (!userEmail) return;
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/v1/portal/notifications?employee_email=${encodeURIComponent(userEmail)}`,
+        {
+          headers: { 'x-org-id': currentUser?.organization_id || 'default_org' }
+        }
+      );
+      if (res.ok) {
+        setNotifications(await res.json());
+      }
+    } catch (err) {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 15000);
+    return () => clearInterval(interval);
+  }, [userEmail, currentUser]);
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  const markNotificationsRead = async () => {
+    if (!userEmail) return;
+    try {
+      await fetch(
+        `${API_BASE_URL}/api/v1/portal/notifications/mark-read?employee_email=${encodeURIComponent(userEmail)}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-org-id': currentUser?.organization_id || 'default_org'
+          },
+          body: JSON.stringify({})
+        }
+      );
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    } catch (err) {
+      // ignore
+    }
+  };
   const getInitials = (name: string) => {
     if (!name) return 'U';
     const parts = name.split(' ');
@@ -78,6 +128,65 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="hidden md:flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 text-xs text-slate-300">
             <Building2 className="w-4 h-4 text-teal-400 shrink-0" />
             <span className="font-medium truncate max-w-[120px]">{currentUser?.organization_name || 'My Organization'}</span>
+          </div>
+
+          {/* Notification Bell */}
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowNotifications(!showNotifications);
+                if (!showNotifications && unreadCount > 0) {
+                  markNotificationsRead();
+                }
+              }}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors relative"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4 text-slate-300" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center animate-pulse">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notifications Popover */}
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                  <h3 className="text-xs font-bold text-white flex items-center gap-2">
+                    <Bell className="w-3.5 h-3.5 text-teal-400" />
+                    <span>Notifications ({notifications.length})</span>
+                  </h3>
+                  <button
+                    onClick={() => setShowNotifications(false)}
+                    className="text-slate-400 hover:text-white text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="max-h-72 overflow-y-auto divide-y divide-slate-800/60 mt-2">
+                  {notifications.length === 0 ? (
+                    <div className="text-center py-8 text-xs text-slate-500">
+                      No notifications yet
+                    </div>
+                  ) : (
+                    notifications.map(n => (
+                      <div key={n.id} className="py-2.5 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-bold text-white">{n.title}</h4>
+                          <span className="text-[10px] text-slate-500">
+                            {n.created_at ? new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-relaxed">{n.message}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Dark mode switch */}
